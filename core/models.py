@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
 
 
 User = settings.AUTH_USER_MODEL  # Custom user model
@@ -215,3 +216,26 @@ class Employee(models.Model):
 
     def __str__(self):
         return f"{self.employee_name} ({self.employee_id})"
+
+class CustomUser(AbstractUser):
+    ROLE_ADMIN = "admin"
+    ROLE_RECRUITER = "recruiter"
+    ROLE_CANDIDATE = "candidate"
+
+    ROLE_CHOICES = [
+        (ROLE_ADMIN, "Admin"),
+        (ROLE_RECRUITER, "Recruiter"),
+        (ROLE_CANDIDATE, "Candidate"),
+    ]
+
+    username = models.CharField(max_length=150, blank=True, null=True)  # optional
+    email = models.EmailField(unique=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CANDIDATE)
+
+    # keep the rest of AbstractUser fields: password, is_staff, is_superuser, is_active, etc.
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []  # email + password only
+
+    def __str__(self):
+        return f"{self.email} ({self.role})"

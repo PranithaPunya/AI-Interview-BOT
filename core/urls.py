@@ -3,7 +3,9 @@ from .views import (
     JobListCreateView, CandidateListCreateView, ApplyJobView,
     ResumeUploadView, InterviewSessionCreateView,
     GeneratedQuestionListView, SubmitAnswerView,
-    FetchPendingTasksView, UpdateTaskStatusView
+    FetchPendingTasksView, UpdateTaskStatusView,
+    CandidateSignupView, AdminCreateUserView, LoginView,
+    PasswordResetAPIView, PasswordResetConfirmAPIView
 )
 
 urlpatterns = [
@@ -32,4 +34,12 @@ urlpatterns = [
     # Worker queue
     path("tasks/pending/", FetchPendingTasksView.as_view()),
     path("tasks/<int:pk>/update/", UpdateTaskStatusView.as_view()),
+    # Authentication
+    path("auth/signup/", CandidateSignupView.as_view(), name="signup"),
+    path("auth/admin-create-user/", AdminCreateUserView.as_view(), name="admin-create-user"),
+    path("auth/login/", LoginView.as_view(), name="login"),
+    path("auth/password-reset/", PasswordResetAPIView.as_view(), name="password_reset"),
+    path("auth/password-reset-confirm/<uidb64>/<token>/", PasswordResetConfirmAPIView.as_view(), name="password_reset_confirm"),
+
+
 ]
