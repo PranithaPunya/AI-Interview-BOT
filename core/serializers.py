@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 from .models import (
     Job, Candidate, CandidateJobMapping, Resume,
     InterviewSession, GeneratedQuestion, CandidateAnswer,
-    AudioProcessingTask
+    AudioProcessingTask,QuestionBank, Job
 )
 
 
@@ -115,10 +115,6 @@ class AdminCreateUserSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-
-from rest_framework import serializers
-from .models import QuestionBank, Job
-
 
 class QuestionBankSerializer(serializers.ModelSerializer):
     job_title = serializers.CharField(source="job.job_title", read_only=True)
