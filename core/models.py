@@ -239,3 +239,19 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.role})"
+
+class QuestionBank(models.Model):
+    TECH = "technical"
+    BEHAVIORAL = "behavioral"
+    CATEGORY_CHOICES = [
+        (TECH, "Technical"),
+        (BEHAVIORAL, "Behavioral"),
+    ]
+
+    job = models.ForeignKey(Job, on_delete=models.SET_NULL, null=True, blank=True)
+    question_text = models.TextField()
+    difficulty_level = models.IntegerField(default=1)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+
+    def __str__(self):
+        return self.question_text

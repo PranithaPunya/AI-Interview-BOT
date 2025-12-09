@@ -1,12 +1,18 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     JobListCreateView, CandidateListCreateView, ApplyJobView,
     ResumeUploadView, InterviewSessionCreateView,
     GeneratedQuestionListView, SubmitAnswerView,
     FetchPendingTasksView, UpdateTaskStatusView,
     CandidateSignupView, AdminCreateUserView, LoginView,
-    PasswordResetAPIView, PasswordResetConfirmAPIView
+    PasswordResetAPIView, PasswordResetConfirmAPIView,JobViewSet, QuestionBankViewSet, CandidateViewSet, ResumeViewSet
 )
+router = DefaultRouter()
+router.register(r"admin/jobs", JobViewSet, basename="admin-jobs")
+router.register(r"admin/questions", QuestionBankViewSet, basename="admin-questions")
+router.register(r"admin/candidates", CandidateViewSet, basename="admin-candidates")
+router.register(r"admin/resumes", ResumeViewSet, basename="admin-resumes")
 
 urlpatterns = [
 
@@ -40,6 +46,6 @@ urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="login"),
     path("auth/password-reset/", PasswordResetAPIView.as_view(), name="password_reset"),
     path("auth/password-reset-confirm/<uidb64>/<token>/", PasswordResetConfirmAPIView.as_view(), name="password_reset_confirm"),
-
+    path("", include(router.urls)),
 
 ]

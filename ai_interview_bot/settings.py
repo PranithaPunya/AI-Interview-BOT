@@ -27,7 +27,15 @@ AUTH_USER_MODEL = "core.CustomUser"
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+       
     ],
+     "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend"
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+
 }
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 MIDDLEWARE = [

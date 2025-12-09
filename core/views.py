@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate, get_user_model
@@ -12,6 +12,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.decorators import action
+
+
 
 from .serializers import (
     CandidateSignupSerializer, AdminCreateUserSerializer,
@@ -229,3 +234,83 @@ class FetchPendingTasksView(generics.ListAPIView):
 class UpdateTaskStatusView(generics.UpdateAPIView):
     queryset = AudioProcessingTask.objects.all()
     serializer_class = AudioProcessingTaskSerializer
+
+from .models import Job, QuestionBank, Candidate, Resume, CandidateJobMapping
+from .serializers import (
+    JobSerializer,
+    QuestionBankSerializer,
+    CandidateSerializer,
+    ResumeSerializer,
+    CandidateJobMappingSerializer,
+)
+from .permissions import IsAdmin
+
+
+# -------------------------
+# Job CRUD for Admin
+# -------------------------
+class JobViewSet(viewsets.ModelViewSet):
+    queryset = Job.objects.all().order_by("-created_at")
+    serializer_class = JobSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["experience_level"]
+    search_fields = ["job_title", "job_code", "description", "skills_required"]
+    ordering_fields = ["created_at", "experience_level"]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+# -------------------------
+# Question Bank CRUD for Admin
+# -------------------------
+class QuestionBankViewSet(viewsets.ModelViewSet):
+    queryset = QuestionBank.objects.all().order_by("-id")
+    serializer_class = QuestionBankSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ["job", "category", "difficulty_level"]
+    search_fields = ["question_text"]
+
+
+# -------------------------
+# Candidate list / details for Admin
+# -------------------------
+class CandidateViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Admin can list and view candidate profiles.
+    For POC we allow ReadOnly. If admins should edit, change to ModelViewSet.
+    """
+    queryset = Candidate.objects.select_related("candidate_user").all().order_by("-created_at")
+    serializer_class = CandidateSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ["full_name", "email", "phone"]
+    filterset_fields = ["status", "experience_years"]
+
+    @action(detail=True, methods=["get"])
+    def applications(self, request, pk=None):
+        """
+        GET /api/admin/candidates/{pk}/applications/
+        show jobs applied by candidate
+        """
+        candidate = self.get_object()
+        apps = CandidateJobMapping.objects.filter(candidate=candidate).select_related("job")
+        serializer = CandidateJobMappingSerializer(apps, many=True)
+        return Response(serializer.data)
+
+
+# -------------------------
+# Resume upload / list for Admin
+# -------------------------
+class ResumeViewSet(viewsets.ModelViewSet):
+    queryset = Resume.objects.all().order_by("-upload_date")
+    serializer_class = ResumeSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["candidate__full_name", "candidate__email", "parsed_text"]
+
+    def perform_create(self, serializer):
+        # make sure file upload is associated to a valid candidate
+        serializer.save()
