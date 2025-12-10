@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
+from .managers import CustomUserManager
 
 
 User = settings.AUTH_USER_MODEL  # Custom user model
@@ -236,6 +237,8 @@ class CustomUser(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []  # email + password only
+    
+    objects = CustomUserManager()
 
     def __str__(self):
         return f"{self.email} ({self.role})"
